@@ -3,6 +3,7 @@ package com.neutech.runtime;
 import com.neutech.base.Background;
 import com.neutech.base.Land;
 import com.neutech.base.Score;
+import com.neutech.base.StartButton;
 import com.neutech.constant.Constant;
 import com.neutech.player.Bird;
 import com.neutech.player.DownPencil;
@@ -43,7 +44,6 @@ public class Director extends Frame {
         enableInputMethods(false);
         // 设置显示状态
         setVisible(true);
-
         // 窗口右上角关闭按键的处理
         // 窗口都是基于事件驱动的
         // 添加窗口事件监听
@@ -55,14 +55,59 @@ public class Director extends Frame {
                 System.exit(0);
             }
         });
-
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                bird.mousePressed(e);
+                if (isLive) {
+                    bird.mousePressed(e);
+                }else {
+                    restart();
+                }
             }
         });
+        // 刷新线程
+        startThread();
+        // 创建一组铅笔，程序一开始初始化时需创建一次，刷新重画时判断是否要添加，所以后面在paint方法调用
+        createPencil();
+    }
 
+    // 创建背景类
+    public Background bg = new Background(ImageUtils.getImage("bg"));
+    // 创建陆地类
+    public Land land = new Land((ImageUtils.getImage("land")));
+    // 上下铅笔是一个组合，应该放一个集合
+    //    public UpPencil up = new UpPencil(ImageUtils.getImage("pu"),300);
+    // 除了线程安全没有区别，添加删除等方法一样方式调用
+    public List<Pencil> pencils = new CopyOnWriteArrayList<Pencil>();
+    public Bird bird = new Bird((ImageUtils.getImage("bird")));
+    public Score score = new Score();
+    public StartButton sb = new StartButton(ImageUtils.getImage("sb"));
+
+    public boolean isUpScore = true;
+    public boolean isLive = true;
+
+    /**
+     * 游戏重启方法
+     */
+    public void restart() {
+        // 重新开始的逻辑
+        isLive = true;
+        // 启动刷新线程
+        startThread();
+        // 陆地复原、小鸟复原、成绩复原、铅笔的集合复原
+        land = new Land((ImageUtils.getImage("land")));
+        bird = new Bird((ImageUtils.getImage("bird")));
+        pencils = new CopyOnWriteArrayList<Pencil>();
+        score = new Score();
+        isUpScore = true;
+        // 重新创建一对铅笔
+        createPencil();
+    }
+
+    /**
+     * 重启线程方法
+     */
+    public void startThread() {
         // 启动刷新线程
         new Thread() {
             @Override
@@ -78,22 +123,7 @@ public class Director extends Frame {
                 }
             }
         }.start();
-
-        // 创建一组铅笔，程序一开始初始化时需创建一次，刷新重画时判断是否要添加，所以后面在paint方法调用
-        createPencil();
-
     }
-
-    // 创建背景类
-    public Background bg = new Background(ImageUtils.getImage("bg"));
-    // 创建陆地类
-    public Land land = new Land((ImageUtils.getImage("land")));
-    // 上下铅笔是一个组合，应该放一个集合
-//    public UpPencil up = new UpPencil(ImageUtils.getImage("pu"),300);
-    // 除了线程安全没有区别，添加删除等方法一样方式调用
-    public List<Pencil> pencils = new CopyOnWriteArrayList<Pencil>();
-    public Bird bird = new Bird((ImageUtils.getImage("bird")));
-    public Score score = new Score();
 
     @Override
     public void paint(Graphics g) {
@@ -110,20 +140,18 @@ public class Director extends Frame {
         land.draw(g);
         // 画鸟图
         bird.draw(g);
-
         score.draw(g);
-
+        if (!isLive) {
+            sb.draw(g);
+        }
         // 陆地需要移动，通过移动x的起始坐标
         land.move();
-
         // 遍历铅笔后调用移动方法，需要对集合里的每个铅笔对象都改变x值
         for (Pencil pencil : pencils) {
             pencil.move();
         }
-
         // 小鸟移动
         bird.move();
-
         // 判断铅笔是否移出左侧界面
         removePencil();
         // 判断是否应该添加铅笔
@@ -132,8 +160,6 @@ public class Director extends Frame {
 //        g.drawString("铅笔的个数：" + pencils.size() + "", 10, 40);
         upScore();
     }
-
-    public boolean isUpScore = true;
 
     /**
      * 判断加分逻辑
@@ -147,8 +173,6 @@ public class Director extends Frame {
         }
     }
 
-    public boolean isLive = true;
-
     /**
      * 碰撞检测
      */
@@ -160,7 +184,6 @@ public class Director extends Frame {
             bird.setY(land.getY() - 24);
             return;
         }
-
         // 构建小鸟的矩形对象,创建一次就够了
         Rectangle birdRect = new Rectangle(bird.getX(),bird.getY(),bird.getWidth(),bird.getHeight());
         // 判断小鸟是否与铅笔相交（换图片、记录各个点判断、三角形判断）
@@ -173,7 +196,6 @@ public class Director extends Frame {
                 return;
             }
         }
-
     }
 
     /**
@@ -215,11 +237,9 @@ public class Director extends Frame {
         pencils.add(new DownPencil(ImageUtils.getImage("pd"), top));
     }
 
-
     // 页面缓存刷新不闪烁
     // 不重写调用的是Frame类中的update方法有清屏的操作
     Image offScreenImage = null;
-
     @Override
     public void update(Graphics g) {
         if (offScreenImage == null) {
@@ -233,5 +253,4 @@ public class Director extends Frame {
         paint(gOffScreen);
         g.drawImage(offScreenImage, 0, 0, null);
     }
-
 }
