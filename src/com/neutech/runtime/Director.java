@@ -148,7 +148,7 @@ public class Director extends Frame {
         land.move();
         // 遍历铅笔后调用移动方法，需要对集合里的每个铅笔对象都改变x值
         for (Pencil pencil : pencils) {
-            pencil.move();
+            pencil.move(score.getNum());
         }
         // 小鸟移动
         bird.move();
@@ -167,8 +167,9 @@ public class Director extends Frame {
     public void upScore() {
         // 取出第一个铅笔的对象
         Pencil pencil = pencils.get(0);
+        // 原为score.setNum(score.getNum() + Constant.SCORE_STEP)
         if (bird.getX() >= pencil.getX() + pencil.getWidth() && isUpScore) {
-            score.setNum(score.getNum() + Constant.SCORE_STEP);
+            score.setNum(score.getNum() + Constant.SCORE_STEP + score.getNum() / 10);
             isUpScore = false;
         }
     }

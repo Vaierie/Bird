@@ -18,7 +18,7 @@ public class Constant {
     public static final int PENCIL_GAP = WIDOW_INNER_HEIGHT / 5;
 
     // 图片移动速度
-    public static int SPEED = 4;
+    public static int SPEED = 2;
 
     public static int SCORE_STEP = 1;
 
