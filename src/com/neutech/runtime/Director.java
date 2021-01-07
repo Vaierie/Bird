@@ -2,6 +2,7 @@ package com.neutech.runtime;
 
 import com.neutech.base.Background;
 import com.neutech.base.Land;
+import com.neutech.base.Score;
 import com.neutech.constant.Constant;
 import com.neutech.player.Bird;
 import com.neutech.player.DownPencil;
@@ -92,6 +93,7 @@ public class Director extends Frame {
     // 除了线程安全没有区别，添加删除等方法一样方式调用
     public List<Pencil> pencils = new CopyOnWriteArrayList<Pencil>();
     public Bird bird = new Bird((ImageUtils.getImage("bird")));
+    public Score score = new Score();
 
     @Override
     public void paint(Graphics g) {
@@ -108,6 +110,8 @@ public class Director extends Frame {
         land.draw(g);
         // 画鸟图
         bird.draw(g);
+
+        score.draw(g);
 
         // 陆地需要移动，通过移动x的起始坐标
         land.move();
@@ -126,6 +130,21 @@ public class Director extends Frame {
         addPencil();
         // 用于监测查看集合内铅笔的个数
 //        g.drawString("铅笔的个数：" + pencils.size() + "", 10, 40);
+        upScore();
+    }
+
+    public boolean isUpScore = true;
+
+    /**
+     * 判断加分逻辑
+     */
+    public void upScore() {
+        // 取出第一个铅笔的对象
+        Pencil pencil = pencils.get(0);
+        if (bird.getX() >= pencil.getX() + pencil.getWidth() && isUpScore) {
+            score.setNum(score.getNum() + Constant.SCORE_STEP);
+            isUpScore = false;
+        }
     }
 
     public boolean isLive = true;
@@ -165,6 +184,7 @@ public class Director extends Frame {
             // 当铅笔的最右边到达窗口边才移除，即绘制的起始x坐标应该是 -铅笔图片的宽度
             if (pencil.getX() <= -pencil.getWidth()) {
                 pencils.remove(pencil);
+                isUpScore = true;
             }
         }
     }

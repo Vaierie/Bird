@@ -20,6 +20,8 @@ public class Constant {
     // 图片移动速度
     public static int SPEED = 4;
 
+    public static int SCORE_STEP = 1;
+
 
 
 }
