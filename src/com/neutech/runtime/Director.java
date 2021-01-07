@@ -30,10 +30,10 @@ public class Director extends Frame {
     /**
      * 初始化处理
      */
-    private  void  init() {
+    private void init() {
         // 设置窗口的尺寸
         // 任何时候都不要写死值,编写常量类
-        setSize(Constant.WINDOW_WIDTH,Constant.WINDOW_HEIGHT);
+        setSize(Constant.WINDOW_WIDTH, Constant.WINDOW_HEIGHT);
         // 设置居中
         setLocationRelativeTo(null);
         // 设置窗口不允许改变大小
@@ -67,7 +67,7 @@ public class Director extends Frame {
             @Override
             public void run() {
                 // 需要放在一个死循环里才会不断刷新
-                while (true) {
+                while (isLive) {
                     repaint();
                     try {
                         Thread.sleep(20);
@@ -95,6 +95,7 @@ public class Director extends Frame {
 
     @Override
     public void paint(Graphics g) {
+        check();
         // 谁后绘制谁就在上面
         // 画背景图
         bg.draw(g);
@@ -124,7 +125,36 @@ public class Director extends Frame {
         // 判断是否应该添加铅笔
         addPencil();
         // 用于监测查看集合内铅笔的个数
-        g.drawString("铅笔的个数："+ pencils.size() + "",10,40);
+//        g.drawString("铅笔的个数：" + pencils.size() + "", 10, 40);
+    }
+
+    public boolean isLive = true;
+
+    /**
+     * 碰撞检测
+     */
+    public void check() {
+        // 检测小鸟与地板的碰撞
+        if (bird.getY() >= land.getY() - 24) {
+            isLive = false;
+            // 设置小鸟的位置正好为地板 - 小鸟的高度，不产生撞地板的效果
+            bird.setY(land.getY() - 24);
+            return;
+        }
+
+        // 构建小鸟的矩形对象,创建一次就够了
+        Rectangle birdRect = new Rectangle(bird.getX(),bird.getY(),bird.getWidth(),bird.getHeight());
+        // 判断小鸟是否与铅笔相交（换图片、记录各个点判断、三角形判断）
+        for (Pencil pencil : pencils) {
+            // 构建铅笔的矩形对象
+            Rectangle pencilRect = new Rectangle(pencil.getX(),pencil.getY(),pencil.getWidth(),pencil.getHeight());
+            if (pencilRect.intersects(birdRect)) {
+                isLive = false;
+                // 立刻终止这个方法的运行
+                return;
+            }
+        }
+
     }
 
     /**
@@ -145,7 +175,7 @@ public class Director extends Frame {
     public void addPencil() {
         // 当铅笔最左边的铅笔的一半到达窗口宽度的一半是添加，即绘制的起始x坐标 <= 窗口宽度的一半 - 铅笔宽度的一半
         // 当铅笔符合前面这个判断时，每刷新一次都会添加铅笔这个时候就需要控制铅笔添加的间隔，可以通过控制当前集合的大小
-        if (pencils.get(0).getX() <= ((Constant.WINDOW_WIDTH - pencils.get(0).getWidth())/2)
+        if (pencils.get(0).getX() <= ((Constant.WINDOW_WIDTH - pencils.get(0).getWidth()) / 2)
                 && pencils.size() < 4) {
             createPencil();
         }
@@ -161,22 +191,24 @@ public class Director extends Frame {
         // Math.random()产生0~1的随机数，浮点数相乘还是浮点数需要强制转型
         int top = minTop + (int) ((maxTop - minTop) * Math.random());
         // 将创建的铅笔添加进集合
-        pencils.add(new UpPencil(ImageUtils.getImage("pu"),top));
-        pencils.add(new DownPencil(ImageUtils.getImage("pd"),top));
+        pencils.add(new UpPencil(ImageUtils.getImage("pu"), top));
+        pencils.add(new DownPencil(ImageUtils.getImage("pd"), top));
     }
 
 
-    //页面缓存刷新不闪烁
+    // 页面缓存刷新不闪烁
+    // 不重写调用的是Frame类中的update方法有清屏的操作
     Image offScreenImage = null;
 
+    @Override
     public void update(Graphics g) {
-        if(offScreenImage == null) {
+        if (offScreenImage == null) {
             offScreenImage = this.createImage(Constant.WINDOW_WIDTH, Constant.WINDOW_HEIGHT);
         }
         Graphics gOffScreen = offScreenImage.getGraphics();
         Color c = gOffScreen.getColor();
         gOffScreen.setColor(Color.GREEN);
-        gOffScreen.fillRect(0, 0,Constant.WINDOW_WIDTH, Constant.WINDOW_HEIGHT);
+        gOffScreen.fillRect(0, 0, Constant.WINDOW_WIDTH, Constant.WINDOW_HEIGHT);
         gOffScreen.setColor(c);
         paint(gOffScreen);
         g.drawImage(offScreenImage, 0, 0, null);
