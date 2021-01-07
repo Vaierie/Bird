@@ -10,6 +10,8 @@ import com.neutech.player.UpPencil;
 import com.neutech.util.ImageUtils;
 
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
@@ -50,6 +52,13 @@ public class Director extends Frame {
             public void windowClosing(WindowEvent e) {
                 // 不同数字含义不同，终止退出程序
                 System.exit(0);
+            }
+        });
+
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                bird.mousePressed(e);
             }
         });
 
@@ -106,6 +115,9 @@ public class Director extends Frame {
         for (Pencil pencil : pencils) {
             pencil.move();
         }
+
+        // 小鸟移动
+        bird.move();
 
         // 判断铅笔是否移出左侧界面
         removePencil();

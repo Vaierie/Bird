@@ -4,6 +4,7 @@ import com.neutech.base.Sprite;
 import com.neutech.constant.Constant;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
 
 public class Bird extends Sprite {
 
@@ -32,4 +33,30 @@ public class Bird extends Sprite {
             index = 0;
         }
     }
+
+    private final double g = 0.98 / 2.4;
+    private int time = 0;
+    private int fixedY = getY();
+
+    /**
+     * 小鸟的移动
+     */
+    @Override
+    public void move() {
+        // g t t 1/2,自由落体运动
+        setY(fixedY + (int) (g * time * (time - 30) / 2));
+        time++;
+    }
+
+    /**
+     * 鼠标点击触发的方法
+     * @param e
+     */
+    public void mousePressed(MouseEvent e) {
+        // 时间复原
+        time = 0;
+        // 从当前位置跳动,记录新的固定的y
+        fixedY = getY();
+    }
+
 }
