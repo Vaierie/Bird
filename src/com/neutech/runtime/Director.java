@@ -10,6 +10,7 @@ import com.neutech.player.DownPencil;
 import com.neutech.player.Pencil;
 import com.neutech.player.UpPencil;
 import com.neutech.util.ImageUtils;
+import com.neutech.util.MusicUtils;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -33,6 +34,7 @@ public class Director extends Frame {
      * 初始化处理
      */
     private void init() {
+
         // 设置窗口的尺寸
         // 任何时候都不要写死值,编写常量类
         setSize(Constant.WINDOW_WIDTH, Constant.WINDOW_HEIGHT);
@@ -65,6 +67,8 @@ public class Director extends Frame {
                 }
             }
         });
+        //
+        bgm.start();
         // 刷新线程
         startThread();
         // 创建一组铅笔，程序一开始初始化时需创建一次，刷新重画时判断是否要添加，所以后面在paint方法调用
@@ -83,6 +87,12 @@ public class Director extends Frame {
     public Score score = new Score();
     public StartButton sb = new StartButton(ImageUtils.getImage("sb"));
 
+    //        play0.start();  //开启
+    //        play0.stop();   //结束
+    MusicUtils bgm = new MusicUtils("bgm");
+    MusicUtils overBgm;
+//    bgm.start();
+
     public boolean isUpScore = true;
     public boolean isLive = true;
 
@@ -100,6 +110,10 @@ public class Director extends Frame {
         pencils = new CopyOnWriteArrayList<Pencil>();
         score = new Score();
         isUpScore = true;
+
+        bgm = new MusicUtils("bgm");
+        overBgm.stop();
+        bgm.start();
         // 重新创建一对铅笔
         createPencil();
     }
@@ -183,6 +197,9 @@ public class Director extends Frame {
             isLive = false;
             // 设置小鸟的位置正好为地板 - 小鸟的高度，不产生撞地板的效果
             bird.setY(land.getY() - 24);
+            bgm.stop();
+            overBgm = new MusicUtils("overBgm");
+            overBgm.start();
             return;
         }
         // 构建小鸟的矩形对象,创建一次就够了
@@ -193,6 +210,9 @@ public class Director extends Frame {
             Rectangle pencilRect = new Rectangle(pencil.getX(),pencil.getY(),pencil.getWidth(),pencil.getHeight());
             if (pencilRect.intersects(birdRect)) {
                 isLive = false;
+                bgm.stop();
+                overBgm = new MusicUtils("overBgm");
+                overBgm.start();
                 // 立刻终止这个方法的运行
                 return;
             }
