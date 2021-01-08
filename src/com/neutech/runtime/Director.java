@@ -12,6 +12,7 @@ import com.neutech.player.UpPencil;
 import com.neutech.util.ImageUtils;
 import com.neutech.util.MusicUtils;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -63,7 +64,15 @@ public class Director extends Frame {
                 if (isLive) {
                     bird.mousePressed(e);
                 }else {
-                    restart();
+                    // 游戏结束弹出结束框点击是否重新开始
+                    int optionFlag = JOptionPane.showOptionDialog(null, "对不起 , 游戏结束 ! 点击确定重新开始",
+                            "游戏结束",JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,null,
+                            new String[]{"确定","关闭游戏"},"确定");
+                    if (optionFlag == JOptionPane.YES_OPTION) {
+                        restart();
+                    }else {
+                        System.exit(0);
+                    }
                 }
             }
         });
@@ -94,7 +103,23 @@ public class Director extends Frame {
 //    bgm.start();
 
     public boolean isUpScore = true;
+    // 重新开始的标志
     public boolean isLive = true;
+    // 记录最高分
+    public int bigScore;
+
+    // 修改最高分,并且判断是否提示距离最高纪录
+    public void modifyBigScore(Graphics g) {
+        if (bigScore < score.getNum()) {
+            bigScore = score.getNum();
+        }
+        if (bigScore - score.getNum() < 5 && bigScore - score.getNum() > 0) {
+            g.setColor(new Color(144, 144, 144));
+            g.setFont(new Font("宋体",Font.PLAIN,20));
+            g.drawString("即将超越历史纪录：" + String.valueOf(bigScore - score.getNum()),Constant.WINDOW_WIDTH / 15,score.getY() * 2);
+        }
+
+    }
 
     /**
      * 游戏重启方法
@@ -173,6 +198,9 @@ public class Director extends Frame {
         // 用于监测查看集合内铅笔的个数
 //        g.drawString("铅笔的个数：" + pencils.size() + "", 10, 40);
         upScore();
+        //
+        modifyBigScore(g);
+//        g.drawString(String.valueOf(bigScore),Constant.WINDOW_WIDTH / 8 + 30,score.getY() * 2);
     }
 
     /**
